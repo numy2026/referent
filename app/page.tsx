@@ -4,12 +4,66 @@ import { useState } from 'react'
 
 type Mode = 'about' | 'theses' | 'telegram'
 
+interface ParsedData {
+  date: string | null
+  title: string | null
+  content: string | null
+}
+
 export default function Home() {
   const [url, setUrl] = useState('')
   const [mode, setMode] = useState<Mode | null>(null)
   const [result, setResult] = useState<string | null>(null)
+  const [parsedData, setParsedData] = useState<ParsedData | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isParsing, setIsParsing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const handleParse = async () => {
+    setError(null)
+    setParsedData(null)
+    setResult(null)
+
+    if (!url.trim()) {
+      setError('Введите URL англоязычной статьи.')
+      return
+    }
+
+    try {
+      // Простая валидация URL
+      new URL(url)
+    } catch {
+      setError('Некорректный URL. Проверьте адрес статьи.')
+      return
+    }
+
+    setIsParsing(true)
+
+    try {
+      const response = await fetch('/api/parse', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.error || 'Ошибка при парсинге статьи')
+        setIsParsing(false)
+        return
+      }
+
+      setParsedData(data)
+      setResult(JSON.stringify(data, null, 2))
+      setIsParsing(false)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Неизвестная ошибка')
+      setIsParsing(false)
+    }
+  }
 
   const handleRun = (nextMode: Mode) => {
     setMode(nextMode)
@@ -47,7 +101,7 @@ export default function Home() {
     }, 800)
   }
 
-  const isDisabled = isLoading
+  const isDisabled = isLoading || isParsing
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4">
@@ -81,6 +135,14 @@ export default function Home() {
         </section>
 
         <section className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={handleParse}
+            disabled={isDisabled}
+            className="inline-flex items-center justify-center rounded-full border border-purple-600 bg-purple-600 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm shadow-purple-900/50 transition hover:bg-purple-500 hover:border-purple-500 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isParsing ? 'Парсинг...' : 'Парсить статью'}
+          </button>
           <button
             type="button"
             onClick={() => handleRun('about')}
@@ -121,19 +183,25 @@ export default function Home() {
             )}
           </div>
 
+          {isParsing && (
+            <p className="text-sm text-slate-400 animate-pulse">
+              Парсинг статьи…
+            </p>
+          )}
+
           {isLoading && (
             <p className="text-sm text-slate-400 animate-pulse">
               Генерируем ответ с помощью AI…
             </p>
           )}
 
-          {!isLoading && result && (
-            <p className="text-sm leading-relaxed text-slate-100 whitespace-pre-line">
+          {!isLoading && !isParsing && result && (
+            <pre className="text-xs leading-relaxed text-slate-100 whitespace-pre-wrap overflow-auto max-h-96 bg-slate-950/50 p-3 rounded-lg border border-slate-800">
               {result}
-            </p>
+            </pre>
           )}
 
-          {!isLoading && !result && !error && (
+          {!isLoading && !isParsing && !result && !error && (
             <p className="text-sm text-slate-500">
               Результат появится здесь после выбора действия.
             </p>
