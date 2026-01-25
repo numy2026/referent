@@ -12,16 +12,41 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Загружаем HTML страницы
+    // Загружаем HTML страницы с полным набором заголовков браузера
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+        'Accept-Language': 'en-US,en;q=0.9,ru;q=0.8',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'DNT': '1',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Sec-Fetch-User': '?1',
+        'Cache-Control': 'max-age=0',
       },
+      // Добавляем redirect для следования редиректам
+      redirect: 'follow',
     })
 
     if (!response.ok) {
+      const statusText = response.statusText || 'Unknown error'
+      let errorMessage = `Не удалось загрузить страницу: ${statusText}`
+      
+      // Более информативные сообщения для разных статусов
+      if (response.status === 403) {
+        errorMessage = 'Доступ запрещен (403). Сервер блокирует запрос. Возможно, требуется авторизация или сайт защищен от парсинга.'
+      } else if (response.status === 404) {
+        errorMessage = 'Страница не найдена (404). Проверьте правильность URL.'
+      } else if (response.status === 429) {
+        errorMessage = 'Слишком много запросов (429). Попробуйте позже.'
+      }
+      
       return NextResponse.json(
-        { error: `Не удалось загрузить страницу: ${response.statusText}` },
+        { error: errorMessage },
         { status: response.status }
       )
     }
