@@ -17,6 +17,7 @@ export default function Home() {
   const [parsedData, setParsedData] = useState<ParsedData | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isParsing, setIsParsing] = useState(false)
+  const [isTranslating, setIsTranslating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const handleParse = async () => {
@@ -65,6 +66,51 @@ export default function Home() {
     }
   }
 
+  const handleTranslate = async () => {
+    setError(null)
+    setResult(null)
+    setMode(null)
+
+    // Используем распарсенный контент, если он есть, иначе просим сначала распарсить
+    if (!parsedData || !parsedData.content) {
+      setError('Сначала распарсите статью, нажав кнопку "Парсить статью".')
+      return
+    }
+
+    const textToTranslate = parsedData.content
+
+    if (!textToTranslate || textToTranslate.trim().length === 0) {
+      setError('Нет контента для перевода.')
+      return
+    }
+
+    setIsTranslating(true)
+
+    try {
+      const response = await fetch('/api/translate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: textToTranslate }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.error || 'Ошибка при переводе')
+        setIsTranslating(false)
+        return
+      }
+
+      setResult(data.translation || 'Перевод не получен')
+      setIsTranslating(false)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Неизвестная ошибка')
+      setIsTranslating(false)
+    }
+  }
+
   const handleRun = (nextMode: Mode) => {
     setMode(nextMode)
     setError(null)
@@ -101,7 +147,7 @@ export default function Home() {
     }, 800)
   }
 
-  const isDisabled = isLoading || isParsing
+  const isDisabled = isLoading || isParsing || isTranslating
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4">
@@ -142,6 +188,14 @@ export default function Home() {
             className="inline-flex items-center justify-center rounded-full border border-purple-600 bg-purple-600 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm shadow-purple-900/50 transition hover:bg-purple-500 hover:border-purple-500 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isParsing ? 'Парсинг...' : 'Парсить статью'}
+          </button>
+          <button
+            type="button"
+            onClick={handleTranslate}
+            disabled={isDisabled || !parsedData?.content}
+            className="inline-flex items-center justify-center rounded-full border border-orange-600 bg-orange-600 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm shadow-orange-900/50 transition hover:bg-orange-500 hover:border-orange-500 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isTranslating ? 'Перевод...' : 'Перевести'}
           </button>
           <button
             type="button"
@@ -189,19 +243,25 @@ export default function Home() {
             </p>
           )}
 
+          {isTranslating && (
+            <p className="text-sm text-slate-400 animate-pulse">
+              Перевод статьи с помощью Deepseek…
+            </p>
+          )}
+
           {isLoading && (
             <p className="text-sm text-slate-400 animate-pulse">
               Генерируем ответ с помощью AI…
             </p>
           )}
 
-          {!isLoading && !isParsing && result && (
+          {!isLoading && !isParsing && !isTranslating && result && (
             <pre className="text-xs leading-relaxed text-slate-100 whitespace-pre-wrap overflow-auto max-h-96 bg-slate-950/50 p-3 rounded-lg border border-slate-800">
               {result}
             </pre>
           )}
 
-          {!isLoading && !isParsing && !result && !error && (
+          {!isLoading && !isParsing && !isTranslating && !result && !error && (
             <p className="text-sm text-slate-500">
               Результат появится здесь после выбора действия.
             </p>
