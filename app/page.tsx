@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 type Mode = 'about' | 'theses' | 'telegram'
 
@@ -52,7 +53,7 @@ export default function Home() {
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error || 'Ошибка при парсинге статьи')
+        setError(data.error ?? 'Не удалось загрузить статью по этой ссылке.')
         setIsParsing(false)
         return
       }
@@ -60,8 +61,8 @@ export default function Home() {
       setParsedData(data)
       setResult(JSON.stringify(data, null, 2))
       setIsParsing(false)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Неизвестная ошибка')
+    } catch {
+      setError('Не удалось загрузить статью по этой ссылке.')
       setIsParsing(false)
     }
   }
@@ -98,15 +99,15 @@ export default function Home() {
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error || 'Ошибка при переводе')
+        setError(data.error ?? 'Не удалось выполнить перевод. Попробуйте позже.')
         setIsTranslating(false)
         return
       }
 
       setResult(data.translation || 'Перевод не получен')
       setIsTranslating(false)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Неизвестная ошибка')
+    } catch {
+      setError('Не удалось выполнить перевод. Попробуйте позже.')
       setIsTranslating(false)
     }
   }
@@ -139,15 +140,15 @@ export default function Home() {
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error || 'Ошибка при генерации ответа')
+        setError(data.error ?? 'Не удалось сгенерировать ответ. Попробуйте позже.')
         setIsLoading(false)
         return
       }
 
       setResult(data.result ?? '')
       setIsLoading(false)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Неизвестная ошибка')
+    } catch {
+      setError('Не удалось сгенерировать ответ. Попробуйте позже.')
       setIsLoading(false)
     }
   }
@@ -181,12 +182,14 @@ export default function Home() {
           <p className="text-xs text-slate-500">
             Укажите ссылку на англоязычную статью.
           </p>
-          {error && (
-            <p className="text-xs text-rose-400 mt-1">
-              {error}
-            </p>
-          )}
         </section>
+
+        {error && (
+          <Alert variant="destructive">
+            <AlertTitle>Ошибка</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
         <section className="flex flex-wrap gap-3 items-start">
           <span className="relative group inline-flex">

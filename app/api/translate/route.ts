@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
 
     if (!text || typeof text !== 'string' || !text.trim()) {
       return NextResponse.json(
-        { error: 'Текст для перевода обязателен' },
+        { error: 'Нет текста для перевода.' },
         { status: 400 }
       )
     }
@@ -15,8 +15,8 @@ export async function POST(request: NextRequest) {
 
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'API ключ OpenRouter не настроен. Добавьте OPENROUTER_API_KEY в .env.local' },
-        { status: 500 }
+        { error: 'Сервис перевода временно недоступен.' },
+        { status: 503 }
       )
     }
 
@@ -47,13 +47,9 @@ export async function POST(request: NextRequest) {
     })
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
       return NextResponse.json(
-        { 
-          error: `Ошибка API OpenRouter: ${response.statusText}`,
-          details: errorData,
-        },
-        { status: response.status }
+        { error: 'Не удалось выполнить перевод. Попробуйте позже.' },
+        { status: 502 }
       )
     }
 
@@ -61,8 +57,8 @@ export async function POST(request: NextRequest) {
 
     if (!data.choices || !data.choices[0] || !data.choices[0].message) {
       return NextResponse.json(
-        { error: 'Неожиданный формат ответа от API' },
-        { status: 500 }
+        { error: 'Не удалось выполнить перевод. Попробуйте позже.' },
+        { status: 502 }
       )
     }
 
@@ -74,8 +70,8 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Ошибка перевода:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Неизвестная ошибка' },
-      { status: 500 }
+      { error: 'Не удалось выполнить перевод. Попробуйте позже.' },
+      { status: 502 }
     )
   }
 }

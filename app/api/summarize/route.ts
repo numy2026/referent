@@ -32,14 +32,14 @@ export async function POST(request: NextRequest) {
 
     if (!text || typeof text !== 'string' || !text.trim()) {
       return NextResponse.json(
-        { error: 'Поле text обязательно и должно быть непустой строкой.' },
+        { error: 'Нет текста для обработки.' },
         { status: 400 }
       )
     }
 
     if (!isAction(action)) {
       return NextResponse.json(
-        { error: `action должен быть одним из: ${ACTION_VALUES.join(', ')}` },
+        { error: 'Выберите действие: описание, тезисы или пост для Telegram.' },
         { status: 400 }
       )
     }
@@ -47,11 +47,8 @@ export async function POST(request: NextRequest) {
     const apiKey = process.env.OPENROUTER_API_KEY
     if (!apiKey) {
       return NextResponse.json(
-        {
-          error:
-            'API ключ OpenRouter не настроен. Добавьте OPENROUTER_API_KEY в .env.local',
-        },
-        { status: 500 }
+        { error: 'Сервис временно недоступен. Попробуйте позже.' },
+        { status: 503 }
       )
     }
 
@@ -79,13 +76,9 @@ export async function POST(request: NextRequest) {
     })
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
       return NextResponse.json(
-        {
-          error: `Ошибка API OpenRouter: ${response.statusText}`,
-          details: errorData,
-        },
-        { status: response.status }
+        { error: 'Не удалось сгенерировать ответ. Попробуйте позже.' },
+        { status: 502 }
       )
     }
 
@@ -97,8 +90,8 @@ export async function POST(request: NextRequest) {
       !data.choices[0].message
     ) {
       return NextResponse.json(
-        { error: 'Неожиданный формат ответа от API' },
-        { status: 500 }
+        { error: 'Не удалось сгенерировать ответ. Попробуйте позже.' },
+        { status: 502 }
       )
     }
 
@@ -108,11 +101,8 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Ошибка summarize:', error)
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : 'Неизвестная ошибка',
-      },
-      { status: 500 }
+      { error: 'Не удалось сгенерировать ответ. Попробуйте позже.' },
+      { status: 502 }
     )
   }
 }
