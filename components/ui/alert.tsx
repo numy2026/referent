@@ -16,7 +16,7 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
     <div
       ref={ref}
       role="alert"
-      className={`relative w-full rounded-lg border px-4 py-3 text-sm ${alertVariants[variant]} ${className ?? ''}`}
+      className={`relative w-full min-w-0 rounded-lg border px-4 py-3 text-sm break-words ${alertVariants[variant]} ${className ?? ''}`}
       {...props}
     />
   )
@@ -41,7 +41,7 @@ const AlertDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={`leading-relaxed [&:not(:first-child)]:mt-1 ${className ?? ''}`}
+    className={`leading-relaxed break-words [&:not(:first-child)]:mt-1 ${className ?? ''}`}
     {...props}
   />
 ))

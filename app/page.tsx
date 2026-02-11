@@ -183,19 +183,19 @@ export default function Home() {
   const isDisabled = isLoading || isParsing || isTranslating
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-2xl space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-50">
+    <main className="min-h-screen flex items-center justify-center px-4 py-6 sm:px-6 sm:py-8">
+      <div className="w-full max-w-2xl min-w-0 space-y-6">
+        <header className="space-y-2 min-w-0">
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-50 break-words sm:text-3xl">
             Referent — AI‑референт статей
           </h1>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-slate-400 break-words">
             Вставьте URL англоязычной статьи и выберите действие: краткое описание,
             тезисы или пост для Telegram.
           </p>
         </header>
 
-        <section className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/40 p-4 shadow-lg shadow-slate-950/40">
+        <section className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/40 p-4 shadow-lg shadow-slate-950/40 min-w-0">
           <label className="block text-sm font-medium text-slate-200 mb-1">
             URL статьи
           </label>
@@ -204,7 +204,7 @@ export default function Home() {
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="Введите URL статьи, например: https://example.com/article"
-            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 outline-none ring-0 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/40 transition"
+            className="w-full min-w-0 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 outline-none ring-0 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/40 transition"
           />
           <p className="text-xs text-slate-500">
             Укажите ссылку на англоязычную статью.
@@ -229,13 +229,13 @@ export default function Home() {
           </Alert>
         )}
 
-        <section className="flex flex-nowrap gap-3 items-center overflow-x-auto pb-1">
-          <span className="relative group inline-flex flex-shrink-0">
+        <section className="flex flex-col gap-3 md:flex-row md:flex-nowrap md:items-center md:overflow-x-auto md:pb-1 min-w-0">
+          <span className="relative group inline-flex flex-shrink-0 w-full md:w-auto">
             <button
               type="button"
               onClick={handleParse}
               disabled={isDisabled}
-              className="inline-flex items-center justify-center rounded-full border border-purple-600 bg-purple-600 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm shadow-purple-900/50 transition hover:bg-purple-500 hover:border-purple-500 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="inline-flex w-full md:w-auto items-center justify-center rounded-full border border-purple-600 bg-purple-600 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm shadow-purple-900/50 transition hover:bg-purple-500 hover:border-purple-500 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isParsing ? 'Парсинг...' : 'Парсить статью'}
             </button>
@@ -243,12 +243,12 @@ export default function Home() {
               Загрузить страницу и извлечь заголовок, дату и текст статьи
             </span>
           </span>
-          <span className="relative group inline-flex flex-shrink-0">
+          <span className="relative group inline-flex flex-shrink-0 w-full md:w-auto">
             <button
               type="button"
               onClick={handleTranslate}
               disabled={isDisabled || !parsedData?.content}
-              className="inline-flex items-center justify-center rounded-full border border-orange-600 bg-orange-600 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm shadow-orange-900/50 transition hover:bg-orange-500 hover:border-orange-500 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="inline-flex w-full md:w-auto items-center justify-center rounded-full border border-orange-600 bg-orange-600 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm shadow-orange-900/50 transition hover:bg-orange-500 hover:border-orange-500 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isTranslating ? 'Перевод...' : 'Перевести'}
             </button>
@@ -256,12 +256,12 @@ export default function Home() {
               {!parsedData?.content ? 'Сначала распарсите статью' : 'Перевести распарсенный текст статьи на русский язык'}
             </span>
           </span>
-          <span className="relative group inline-flex flex-shrink-0">
+          <span className="relative group inline-flex flex-shrink-0 w-full md:w-auto">
             <button
               type="button"
               onClick={() => handleRun('about')}
               disabled={isDisabled || !parsedData?.content}
-              className="inline-flex items-center justify-center rounded-full border border-sky-600 bg-sky-600 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm shadow-sky-900/50 transition hover:bg-sky-500 hover:border-sky-500 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="inline-flex w-full md:w-auto items-center justify-center rounded-full border border-sky-600 bg-sky-600 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm shadow-sky-900/50 transition hover:bg-sky-500 hover:border-sky-500 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               О чем статья?
             </button>
@@ -269,12 +269,12 @@ export default function Home() {
               {!parsedData?.content ? 'Сначала распарсите статью' : 'Получить краткое описание статьи (1–2 абзаца)'}
             </span>
           </span>
-          <span className="relative group inline-flex flex-shrink-0">
+          <span className="relative group inline-flex flex-shrink-0 w-full md:w-auto">
             <button
               type="button"
               onClick={() => handleRun('theses')}
               disabled={isDisabled || !parsedData?.content}
-              className="inline-flex items-center justify-center rounded-full border border-slate-700 bg-slate-900 px-4 py-2 text-sm font-medium text-slate-100 shadow-sm shadow-slate-950/40 transition hover:bg-slate-800 hover:border-slate-500 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="inline-flex w-full md:w-auto items-center justify-center rounded-full border border-slate-700 bg-slate-900 px-4 py-2 text-sm font-medium text-slate-100 shadow-sm shadow-slate-950/40 transition hover:bg-slate-800 hover:border-slate-500 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               Тезисы
             </button>
@@ -282,12 +282,12 @@ export default function Home() {
               {!parsedData?.content ? 'Сначала распарсите статью' : 'Выделить ключевые тезисы в виде списка'}
             </span>
           </span>
-          <span className="relative group inline-flex flex-shrink-0">
+          <span className="relative group inline-flex flex-shrink-0 w-full md:w-auto">
             <button
               type="button"
               onClick={() => handleRun('telegram')}
               disabled={isDisabled || !parsedData?.content}
-              className="inline-flex items-center justify-center rounded-full border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm shadow-emerald-950/50 transition hover:bg-emerald-500 hover:border-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="inline-flex w-full md:w-auto items-center justify-center rounded-full border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm shadow-emerald-950/50 transition hover:bg-emerald-500 hover:border-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               Пост для Telegram
             </button>
@@ -314,9 +314,9 @@ export default function Home() {
 
         <section
           ref={resultBlockRef}
-          className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 min-h-[160px]"
+          className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 min-h-[160px] min-w-0"
         >
-          <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+          <div className="flex items-center justify-between gap-2 mb-2 flex-wrap min-w-0">
             <h2 className="text-sm font-medium text-slate-100">
               Результат
             </h2>
@@ -341,7 +341,7 @@ export default function Home() {
           </div>
 
           {!isLoading && !isParsing && !isTranslating && result && (
-            <pre className="text-xs leading-relaxed text-slate-100 whitespace-pre-wrap overflow-auto max-h-96 bg-slate-950/50 p-3 rounded-lg border border-slate-800">
+            <pre className="text-xs leading-relaxed text-slate-100 whitespace-pre-wrap break-words overflow-auto max-h-96 max-w-full bg-slate-950/50 p-3 rounded-lg border border-slate-800">
               {result}
             </pre>
           )}
