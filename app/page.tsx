@@ -175,9 +175,12 @@ export default function Home() {
             type="url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://example.com/article"
+            placeholder="Введите URL статьи, например: https://example.com/article"
             className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 outline-none ring-0 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/40 transition"
           />
+          <p className="text-xs text-slate-500">
+            Укажите ссылку на англоязычную статью.
+          </p>
           {error && (
             <p className="text-xs text-rose-400 mt-1">
               {error}
@@ -190,6 +193,7 @@ export default function Home() {
             type="button"
             onClick={handleParse}
             disabled={isDisabled}
+            title="Загрузить страницу и извлечь заголовок, дату и текст статьи"
             className="inline-flex items-center justify-center rounded-full border border-purple-600 bg-purple-600 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm shadow-purple-900/50 transition hover:bg-purple-500 hover:border-purple-500 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isParsing ? 'Парсинг...' : 'Парсить статью'}
@@ -198,6 +202,7 @@ export default function Home() {
             type="button"
             onClick={handleTranslate}
             disabled={isDisabled || !parsedData?.content}
+            title={!parsedData?.content ? 'Сначала распарсите статью' : 'Перевести распарсенный текст статьи на русский язык'}
             className="inline-flex items-center justify-center rounded-full border border-orange-600 bg-orange-600 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm shadow-orange-900/50 transition hover:bg-orange-500 hover:border-orange-500 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isTranslating ? 'Перевод...' : 'Перевести'}
@@ -206,7 +211,7 @@ export default function Home() {
             type="button"
             onClick={() => handleRun('about')}
             disabled={isDisabled || !parsedData?.content}
-            title={!parsedData?.content ? 'Сначала распарсите статью' : ''}
+            title={!parsedData?.content ? 'Сначала распарсите статью' : 'Получить краткое описание статьи (1–2 абзаца)'}
             className="inline-flex items-center justify-center rounded-full border border-sky-600 bg-sky-600 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm shadow-sky-900/50 transition hover:bg-sky-500 hover:border-sky-500 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             О чем статья?
@@ -215,7 +220,7 @@ export default function Home() {
             type="button"
             onClick={() => handleRun('theses')}
             disabled={isDisabled || !parsedData?.content}
-            title={!parsedData?.content ? 'Сначала распарсите статью' : ''}
+            title={!parsedData?.content ? 'Сначала распарсите статью' : 'Выделить ключевые тезисы в виде списка'}
             className="inline-flex items-center justify-center rounded-full border border-slate-700 bg-slate-900 px-4 py-2 text-sm font-medium text-slate-100 shadow-sm shadow-slate-950/40 transition hover:bg-slate-800 hover:border-slate-500 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             Тезисы
@@ -224,7 +229,7 @@ export default function Home() {
             type="button"
             onClick={() => handleRun('telegram')}
             disabled={isDisabled || !parsedData?.content}
-            title={!parsedData?.content ? 'Сначала распарсите статью' : ''}
+            title={!parsedData?.content ? 'Сначала распарсите статью' : 'Сгенерировать короткий пост для публикации в Telegram'}
             className="inline-flex items-center justify-center rounded-full border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm shadow-emerald-950/50 transition hover:bg-emerald-500 hover:border-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             Пост для Telegram
@@ -234,6 +239,16 @@ export default function Home() {
           <p className="text-xs text-slate-500">
             Кнопки «О чем статья?», «Тезисы» и «Пост для Telegram» доступны после парсинга статьи.
           </p>
+        )}
+
+        {(isParsing || isTranslating || isLoading) && (
+          <div className="rounded-lg border border-slate-700 bg-slate-800/60 px-3 py-2">
+            <p className="text-sm text-slate-300">
+              {isParsing && 'Загружаю статью…'}
+              {isTranslating && !isParsing && 'Перевожу статью…'}
+              {isLoading && !isParsing && !isTranslating && 'Генерирую ответ…'}
+            </p>
+          </div>
         )}
 
         <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 min-h-[160px]">
@@ -249,24 +264,6 @@ export default function Home() {
               </span>
             )}
           </div>
-
-          {isParsing && (
-            <p className="text-sm text-slate-400 animate-pulse">
-              Парсинг статьи…
-            </p>
-          )}
-
-          {isTranslating && (
-            <p className="text-sm text-slate-400 animate-pulse">
-              Перевод статьи с помощью Deepseek…
-            </p>
-          )}
-
-          {isLoading && (
-            <p className="text-sm text-slate-400 animate-pulse">
-              Генерируем ответ с помощью AI…
-            </p>
-          )}
 
           {!isLoading && !isParsing && !isTranslating && result && (
             <pre className="text-xs leading-relaxed text-slate-100 whitespace-pre-wrap overflow-auto max-h-96 bg-slate-950/50 p-3 rounded-lg border border-slate-800">
