@@ -111,40 +111,45 @@ export default function Home() {
     }
   }
 
-  const handleRun = (nextMode: Mode) => {
+  const handleRun = async (nextMode: Mode) => {
     setMode(nextMode)
     setError(null)
     setResult(null)
 
-    if (!url.trim()) {
-      setError('Введите URL англоязычной статьи.')
+    if (!parsedData?.content) {
+      setError('Сначала распарсите статью, нажав кнопку «Парсить статью».')
       return
     }
 
-    try {
-      // Простая валидация URL
-      new URL(url)
-    } catch {
-      setError('Некорректный URL. Проверьте адрес статьи.')
+    const text = parsedData.content.trim()
+    if (!text) {
+      setError('Нет контента для обработки.')
       return
     }
 
     setIsLoading(true)
 
-    // Заглушка вместо реального AI-запроса
-    setTimeout(() => {
-      let mock: string
-      if (nextMode === 'about') {
-        mock = 'Краткое описание статьи будет показано здесь.'
-      } else if (nextMode === 'theses') {
-        mock = 'Здесь появятся ключевые тезисы статьи в виде списка.'
-      } else {
-        mock = 'Здесь появится готовый черновик поста для Telegram.'
+    try {
+      const response = await fetch('/api/summarize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, action: nextMode }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.error || 'Ошибка при генерации ответа')
+        setIsLoading(false)
+        return
       }
 
-      setResult(mock)
+      setResult(data.result ?? '')
       setIsLoading(false)
-    }, 800)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Неизвестная ошибка')
+      setIsLoading(false)
+    }
   }
 
   const isDisabled = isLoading || isParsing || isTranslating
@@ -200,7 +205,8 @@ export default function Home() {
           <button
             type="button"
             onClick={() => handleRun('about')}
-            disabled={isDisabled}
+            disabled={isDisabled || !parsedData?.content}
+            title={!parsedData?.content ? 'Сначала распарсите статью' : ''}
             className="inline-flex items-center justify-center rounded-full border border-sky-600 bg-sky-600 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm shadow-sky-900/50 transition hover:bg-sky-500 hover:border-sky-500 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             О чем статья?
@@ -208,7 +214,8 @@ export default function Home() {
           <button
             type="button"
             onClick={() => handleRun('theses')}
-            disabled={isDisabled}
+            disabled={isDisabled || !parsedData?.content}
+            title={!parsedData?.content ? 'Сначала распарсите статью' : ''}
             className="inline-flex items-center justify-center rounded-full border border-slate-700 bg-slate-900 px-4 py-2 text-sm font-medium text-slate-100 shadow-sm shadow-slate-950/40 transition hover:bg-slate-800 hover:border-slate-500 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             Тезисы
@@ -216,12 +223,18 @@ export default function Home() {
           <button
             type="button"
             onClick={() => handleRun('telegram')}
-            disabled={isDisabled}
+            disabled={isDisabled || !parsedData?.content}
+            title={!parsedData?.content ? 'Сначала распарсите статью' : ''}
             className="inline-flex items-center justify-center rounded-full border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm shadow-emerald-950/50 transition hover:bg-emerald-500 hover:border-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             Пост для Telegram
           </button>
         </section>
+        {!parsedData?.content && (
+          <p className="text-xs text-slate-500">
+            Кнопки «О чем статья?», «Тезисы» и «Пост для Telegram» доступны после парсинга статьи.
+          </p>
+        )}
 
         <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 min-h-[160px]">
           <div className="flex items-center justify-between mb-2">
