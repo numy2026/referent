@@ -188,52 +188,72 @@ export default function Home() {
           )}
         </section>
 
-        <section className="flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={handleParse}
-            disabled={isDisabled}
-            title="Загрузить страницу и извлечь заголовок, дату и текст статьи"
-            className="inline-flex items-center justify-center rounded-full border border-purple-600 bg-purple-600 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm shadow-purple-900/50 transition hover:bg-purple-500 hover:border-purple-500 disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {isParsing ? 'Парсинг...' : 'Парсить статью'}
-          </button>
-          <button
-            type="button"
-            onClick={handleTranslate}
-            disabled={isDisabled || !parsedData?.content}
-            title={!parsedData?.content ? 'Сначала распарсите статью' : 'Перевести распарсенный текст статьи на русский язык'}
-            className="inline-flex items-center justify-center rounded-full border border-orange-600 bg-orange-600 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm shadow-orange-900/50 transition hover:bg-orange-500 hover:border-orange-500 disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {isTranslating ? 'Перевод...' : 'Перевести'}
-          </button>
-          <button
-            type="button"
-            onClick={() => handleRun('about')}
-            disabled={isDisabled || !parsedData?.content}
-            title={!parsedData?.content ? 'Сначала распарсите статью' : 'Получить краткое описание статьи (1–2 абзаца)'}
-            className="inline-flex items-center justify-center rounded-full border border-sky-600 bg-sky-600 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm shadow-sky-900/50 transition hover:bg-sky-500 hover:border-sky-500 disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            О чем статья?
-          </button>
-          <button
-            type="button"
-            onClick={() => handleRun('theses')}
-            disabled={isDisabled || !parsedData?.content}
-            title={!parsedData?.content ? 'Сначала распарсите статью' : 'Выделить ключевые тезисы в виде списка'}
-            className="inline-flex items-center justify-center rounded-full border border-slate-700 bg-slate-900 px-4 py-2 text-sm font-medium text-slate-100 shadow-sm shadow-slate-950/40 transition hover:bg-slate-800 hover:border-slate-500 disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            Тезисы
-          </button>
-          <button
-            type="button"
-            onClick={() => handleRun('telegram')}
-            disabled={isDisabled || !parsedData?.content}
-            title={!parsedData?.content ? 'Сначала распарсите статью' : 'Сгенерировать короткий пост для публикации в Telegram'}
-            className="inline-flex items-center justify-center rounded-full border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm shadow-emerald-950/50 transition hover:bg-emerald-500 hover:border-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            Пост для Telegram
-          </button>
+        <section className="flex flex-wrap gap-3 items-start">
+          <span className="relative group inline-flex">
+            <button
+              type="button"
+              onClick={handleParse}
+              disabled={isDisabled}
+              className="inline-flex items-center justify-center rounded-full border border-purple-600 bg-purple-600 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm shadow-purple-900/50 transition hover:bg-purple-500 hover:border-purple-500 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {isParsing ? 'Парсинг...' : 'Парсить статью'}
+            </button>
+            <span className="btn-tooltip" role="tooltip">
+              Загрузить страницу и извлечь заголовок, дату и текст статьи
+            </span>
+          </span>
+          <span className="relative group inline-flex">
+            <button
+              type="button"
+              onClick={handleTranslate}
+              disabled={isDisabled || !parsedData?.content}
+              className="inline-flex items-center justify-center rounded-full border border-orange-600 bg-orange-600 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm shadow-orange-900/50 transition hover:bg-orange-500 hover:border-orange-500 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {isTranslating ? 'Перевод...' : 'Перевести'}
+            </button>
+            <span className="btn-tooltip" role="tooltip">
+              {!parsedData?.content ? 'Сначала распарсите статью' : 'Перевести распарсенный текст статьи на русский язык'}
+            </span>
+          </span>
+          <span className="relative group inline-flex">
+            <button
+              type="button"
+              onClick={() => handleRun('about')}
+              disabled={isDisabled || !parsedData?.content}
+              className="inline-flex items-center justify-center rounded-full border border-sky-600 bg-sky-600 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm shadow-sky-900/50 transition hover:bg-sky-500 hover:border-sky-500 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              О чем статья?
+            </button>
+            <span className="btn-tooltip" role="tooltip">
+              {!parsedData?.content ? 'Сначала распарсите статью' : 'Получить краткое описание статьи (1–2 абзаца)'}
+            </span>
+          </span>
+          <span className="relative group inline-flex">
+            <button
+              type="button"
+              onClick={() => handleRun('theses')}
+              disabled={isDisabled || !parsedData?.content}
+              className="inline-flex items-center justify-center rounded-full border border-slate-700 bg-slate-900 px-4 py-2 text-sm font-medium text-slate-100 shadow-sm shadow-slate-950/40 transition hover:bg-slate-800 hover:border-slate-500 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              Тезисы
+            </button>
+            <span className="btn-tooltip" role="tooltip">
+              {!parsedData?.content ? 'Сначала распарсите статью' : 'Выделить ключевые тезисы в виде списка'}
+            </span>
+          </span>
+          <span className="relative group inline-flex">
+            <button
+              type="button"
+              onClick={() => handleRun('telegram')}
+              disabled={isDisabled || !parsedData?.content}
+              className="inline-flex items-center justify-center rounded-full border border-emerald-600 bg-emerald-600 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm shadow-emerald-950/50 transition hover:bg-emerald-500 hover:border-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              Пост для Telegram
+            </button>
+            <span className="btn-tooltip" role="tooltip">
+              {!parsedData?.content ? 'Сначала распарсите статью' : 'Сгенерировать короткий пост для публикации в Telegram'}
+            </span>
+          </span>
         </section>
         {!parsedData?.content && (
           <p className="text-xs text-slate-500">

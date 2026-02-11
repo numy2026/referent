@@ -6,3 +6,8 @@ body {
   @apply bg-slate-950 text-slate-50 antialiased;
 }
 
+/* Всплывающие подсказки к кнопкам */
+.btn-tooltip {
+  @apply absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 text-xs text-slate-100 bg-slate-800 border border-slate-600 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none z-50 max-w-[240px] text-center;
+}
+
