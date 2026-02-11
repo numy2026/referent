@@ -229,7 +229,7 @@ export default function Home() {
           </Alert>
         )}
 
-        <section className="flex flex-col gap-3 md:flex-row md:flex-nowrap md:items-center md:overflow-x-auto md:pb-1 min-w-0">
+        <section className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center min-w-0 overflow-visible">
           <span className="relative group inline-flex flex-shrink-0 w-full md:w-auto">
             <button
               type="button"
