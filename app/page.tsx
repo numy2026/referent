@@ -229,8 +229,8 @@ export default function Home() {
           </Alert>
         )}
 
-        <section className="flex flex-wrap gap-3 items-start">
-          <span className="relative group inline-flex">
+        <section className="flex flex-nowrap gap-3 items-center overflow-x-auto pb-1">
+          <span className="relative group inline-flex flex-shrink-0">
             <button
               type="button"
               onClick={handleParse}
@@ -243,7 +243,7 @@ export default function Home() {
               Загрузить страницу и извлечь заголовок, дату и текст статьи
             </span>
           </span>
-          <span className="relative group inline-flex">
+          <span className="relative group inline-flex flex-shrink-0">
             <button
               type="button"
               onClick={handleTranslate}
@@ -256,7 +256,7 @@ export default function Home() {
               {!parsedData?.content ? 'Сначала распарсите статью' : 'Перевести распарсенный текст статьи на русский язык'}
             </span>
           </span>
-          <span className="relative group inline-flex">
+          <span className="relative group inline-flex flex-shrink-0">
             <button
               type="button"
               onClick={() => handleRun('about')}
@@ -269,7 +269,7 @@ export default function Home() {
               {!parsedData?.content ? 'Сначала распарсите статью' : 'Получить краткое описание статьи (1–2 абзаца)'}
             </span>
           </span>
-          <span className="relative group inline-flex">
+          <span className="relative group inline-flex flex-shrink-0">
             <button
               type="button"
               onClick={() => handleRun('theses')}
@@ -282,7 +282,7 @@ export default function Home() {
               {!parsedData?.content ? 'Сначала распарсите статью' : 'Выделить ключевые тезисы в виде списка'}
             </span>
           </span>
-          <span className="relative group inline-flex">
+          <span className="relative group inline-flex flex-shrink-0">
             <button
               type="button"
               onClick={() => handleRun('telegram')}
