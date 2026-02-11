@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 type Mode = 'about' | 'theses' | 'telegram'
@@ -20,6 +20,33 @@ export default function Home() {
   const [isParsing, setIsParsing] = useState(false)
   const [isTranslating, setIsTranslating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+  const resultBlockRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    if (result && !isLoading && !isParsing && !isTranslating) {
+      resultBlockRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [result, isLoading, isParsing, isTranslating])
+
+  const handleClear = () => {
+    setUrl('')
+    setMode(null)
+    setResult(null)
+    setParsedData(null)
+    setError(null)
+  }
+
+  const handleCopyResult = async () => {
+    if (!result) return
+    try {
+      await navigator.clipboard.writeText(result)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      setError('Не удалось скопировать в буфер обмена.')
+    }
+  }
 
   const handleParse = async () => {
     setError(null)
@@ -257,6 +284,20 @@ export default function Home() {
               {!parsedData?.content ? 'Сначала распарсите статью' : 'Сгенерировать короткий пост для публикации в Telegram'}
             </span>
           </span>
+          <span className="relative group inline-flex">
+            <button
+              type="button"
+              onClick={handleClear}
+              disabled={isDisabled}
+              title="Очистить форму и результаты"
+              className="inline-flex items-center justify-center rounded-full border border-slate-600 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-200 shadow-sm transition hover:bg-slate-700 hover:border-slate-500 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              Очистить
+            </button>
+            <span className="btn-tooltip" role="tooltip">
+              Сбросить URL, результаты и ошибки
+            </span>
+          </span>
         </section>
         {!parsedData?.content && (
           <p className="text-xs text-slate-500">
@@ -274,18 +315,32 @@ export default function Home() {
           </div>
         )}
 
-        <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 min-h-[160px]">
-          <div className="flex items-center justify-between mb-2">
+        <section
+          ref={resultBlockRef}
+          className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 min-h-[160px]"
+        >
+          <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
             <h2 className="text-sm font-medium text-slate-100">
               Результат
             </h2>
-            {mode && (
-              <span className="rounded-full bg-slate-800 px-2.5 py-1 text-xs text-slate-300">
-                {mode === 'about' && 'О чем статья'}
-                {mode === 'theses' && 'Тезисы'}
-                {mode === 'telegram' && 'Пост для Telegram'}
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              {mode && (
+                <span className="rounded-full bg-slate-800 px-2.5 py-1 text-xs text-slate-300">
+                  {mode === 'about' && 'О чем статья'}
+                  {mode === 'theses' && 'Тезисы'}
+                  {mode === 'telegram' && 'Пост для Telegram'}
+                </span>
+              )}
+              {result && (
+                <button
+                  type="button"
+                  onClick={handleCopyResult}
+                  className="rounded-lg border border-slate-600 bg-slate-800 px-2.5 py-1.5 text-xs font-medium text-slate-200 transition hover:bg-slate-700 hover:border-slate-500"
+                >
+                  {copied ? 'Скопировано' : 'Копировать'}
+                </button>
+              )}
+            </div>
           </div>
 
           {!isLoading && !isParsing && !isTranslating && result && (
