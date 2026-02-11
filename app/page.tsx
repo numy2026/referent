@@ -209,6 +209,17 @@ export default function Home() {
           <p className="text-xs text-slate-500">
             Укажите ссылку на англоязычную статью.
           </p>
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={handleClear}
+              disabled={isDisabled}
+              title="Очистить форму и результаты"
+              className="rounded-lg border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-200 transition hover:bg-slate-700 hover:border-slate-500 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              Очистить
+            </button>
+          </div>
         </section>
 
         {error && (
@@ -282,20 +293,6 @@ export default function Home() {
             </button>
             <span className="btn-tooltip" role="tooltip">
               {!parsedData?.content ? 'Сначала распарсите статью' : 'Сгенерировать короткий пост для публикации в Telegram'}
-            </span>
-          </span>
-          <span className="relative group inline-flex">
-            <button
-              type="button"
-              onClick={handleClear}
-              disabled={isDisabled}
-              title="Очистить форму и результаты"
-              className="inline-flex items-center justify-center rounded-full border border-slate-600 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-200 shadow-sm transition hover:bg-slate-700 hover:border-slate-500 disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              Очистить
-            </button>
-            <span className="btn-tooltip" role="tooltip">
-              Сбросить URL, результаты и ошибки
             </span>
           </span>
         </section>
