@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
-type Mode = 'about' | 'theses' | 'telegram'
+type Mode = 'about' | 'theses' | 'telegram' | 'illustration'
 
 interface ParsedData {
   date: string | null
@@ -19,20 +19,23 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
   const [isParsing, setIsParsing] = useState(false)
   const [isTranslating, setIsTranslating] = useState(false)
+  const [isIllustrating, setIsIllustrating] = useState(false)
+  const [imageResult, setImageResult] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const resultBlockRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
-    if (result && !isLoading && !isParsing && !isTranslating) {
+    if ((result || imageResult) && !isLoading && !isParsing && !isTranslating && !isIllustrating) {
       resultBlockRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
-  }, [result, isLoading, isParsing, isTranslating])
+  }, [result, imageResult, isLoading, isParsing, isTranslating, isIllustrating])
 
   const handleClear = () => {
     setUrl('')
     setMode(null)
     setResult(null)
+    setImageResult(null)
     setParsedData(null)
     setError(null)
   }
@@ -97,6 +100,7 @@ export default function Home() {
   const handleTranslate = async () => {
     setError(null)
     setResult(null)
+    setImageResult(null)
     setMode(null)
 
     // Используем распарсенный контент, если он есть, иначе просим сначала распарсить
@@ -139,10 +143,54 @@ export default function Home() {
     }
   }
 
+  const handleIllustrate = async () => {
+    setMode('illustration')
+    setError(null)
+    setResult(null)
+    setImageResult(null)
+
+    if (!parsedData?.content) {
+      setError('Сначала распарсите статью, нажав кнопку «Парсить статью».')
+      return
+    }
+
+    const text = parsedData.content.trim()
+    if (!text) {
+      setError('Нет контента для генерации иллюстрации.')
+      return
+    }
+
+    setIsIllustrating(true)
+
+    try {
+      const response = await fetch('/api/illustrate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.error ?? 'Не удалось сгенерировать иллюстрацию. Попробуйте позже.')
+        setIsIllustrating(false)
+        return
+      }
+
+      setResult(data.prompt ?? '')
+      setImageResult(data.image ?? null)
+      setIsIllustrating(false)
+    } catch {
+      setError('Не удалось сгенерировать иллюстрацию. Попробуйте позже.')
+      setIsIllustrating(false)
+    }
+  }
+
   const handleRun = async (nextMode: Mode) => {
     setMode(nextMode)
     setError(null)
     setResult(null)
+    setImageResult(null)
 
     if (!parsedData?.content) {
       setError('Сначала распарсите статью, нажав кнопку «Парсить статью».')
@@ -180,7 +228,7 @@ export default function Home() {
     }
   }
 
-  const isDisabled = isLoading || isParsing || isTranslating
+  const isDisabled = isLoading || isParsing || isTranslating || isIllustrating
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4 py-6 sm:px-6 sm:py-8">
@@ -293,24 +341,38 @@ export default function Home() {
               >
                 Пост для Telegram
               </button>
+            <span className="btn-tooltip" role="tooltip">
+              {!parsedData?.content ? 'Сначала распарсите статью' : 'Сгенерировать короткий пост для публикации в Telegram'}
+              </span>
+            </span>
+            <span className="relative group inline-flex flex-shrink-0 w-full md:w-auto">
+              <button
+                type="button"
+                onClick={handleIllustrate}
+                disabled={isDisabled || !parsedData?.content}
+                className="inline-flex w-full md:w-auto items-center justify-center rounded-full border border-amber-600 bg-amber-600 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm shadow-amber-900/50 transition hover:bg-amber-500 hover:border-amber-500 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isIllustrating ? 'Генерация…' : 'Иллюстрация'}
+              </button>
               <span className="btn-tooltip" role="tooltip">
-                {!parsedData?.content ? 'Сначала распарсите статью' : 'Сгенерировать короткий пост для публикации в Telegram'}
+                {!parsedData?.content ? 'Сначала распарсите статью' : 'Сгенерировать изображение по смыслу статьи'}
               </span>
             </span>
           </div>
         </section>
         {!parsedData?.content && (
           <p className="text-xs text-slate-500">
-            Кнопки «О чем статья?», «Тезисы» и «Пост для Telegram» доступны после парсинга статьи.
+            Кнопки «О чем статья?», «Тезисы», «Пост для Telegram» и «Иллюстрация» доступны после парсинга статьи.
           </p>
         )}
 
-        {(isParsing || isTranslating || isLoading) && (
+        {(isParsing || isTranslating || isLoading || isIllustrating) && (
           <div className="rounded-lg border border-slate-700 bg-slate-800/60 px-3 py-2">
             <p className="text-sm text-slate-300">
               {isParsing && 'Загружаю статью…'}
               {isTranslating && !isParsing && 'Перевожу статью…'}
-              {isLoading && !isParsing && !isTranslating && 'Генерирую ответ…'}
+              {isIllustrating && !isParsing && !isTranslating && 'Генерирую иллюстрацию…'}
+              {isLoading && !isParsing && !isTranslating && !isIllustrating && 'Генерирую ответ…'}
             </p>
           </div>
         )}
@@ -329,9 +391,10 @@ export default function Home() {
                   {mode === 'about' && 'О чем статья'}
                   {mode === 'theses' && 'Тезисы'}
                   {mode === 'telegram' && 'Пост для Telegram'}
+                  {mode === 'illustration' && 'Иллюстрация'}
                 </span>
               )}
-              {result && (
+              {result && !imageResult && (
                 <button
                   type="button"
                   onClick={handleCopyResult}
@@ -343,13 +406,28 @@ export default function Home() {
             </div>
           </div>
 
-          {!isLoading && !isParsing && !isTranslating && result && (
+          {!isLoading && !isParsing && !isTranslating && !isIllustrating && imageResult && (
+            <div className="space-y-3">
+              <img
+                src={imageResult}
+                alt="Иллюстрация к статье"
+                className="max-w-full h-auto rounded-lg border border-slate-700"
+              />
+              {result && (
+                <p className="text-xs text-slate-400 break-words">
+                  Промпт: {result}
+                </p>
+              )}
+            </div>
+          )}
+
+          {!isLoading && !isParsing && !isTranslating && !isIllustrating && result && !imageResult && (
             <pre className="text-xs leading-relaxed text-slate-100 whitespace-pre-wrap break-words overflow-auto max-h-96 max-w-full bg-slate-950/50 p-3 rounded-lg border border-slate-800">
               {result}
             </pre>
           )}
 
-          {!isLoading && !isParsing && !isTranslating && !result && !error && (
+          {!isLoading && !isParsing && !isTranslating && !isIllustrating && !result && !imageResult && !error && (
             <p className="text-sm text-slate-500">
               Результат появится здесь после выбора действия.
             </p>
