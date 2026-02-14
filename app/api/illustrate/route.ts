@@ -63,57 +63,68 @@ export async function POST(request: NextRequest) {
       'Abstract concept, digital art, vivid colors'
 
     // 2. Генерируем изображение через Hugging Face Inference API
-    const model = 'stabilityai/stable-diffusion-xl-base-1.0'
-    const hfRes = await fetch(
-      `https://api-inference.huggingface.co/models/${model}`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${hfKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          inputs: imagePrompt,
-          parameters: {
-            num_inference_steps: 28,
-            guidance_scale: 7.5,
+    const models: { id: string; params: Record<string, number> }[] = [
+      { id: 'black-forest-labs/FLUX.1-schnell', params: { num_inference_steps: 4 } },
+      { id: 'stabilityai/stable-diffusion-2-1', params: { num_inference_steps: 20, guidance_scale: 7.5 } },
+    ]
+
+    let imageBuf: Buffer | null = null
+    let imageContentType = 'image/png'
+    let lastError = ''
+
+    for (const { id: model, params } of models) {
+      const hfRes = await fetch(
+        `https://api-inference.huggingface.co/models/${model}`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${hfKey}`,
+            'Content-Type': 'application/json',
           },
-        }),
+          body: JSON.stringify({
+            inputs: imagePrompt,
+            parameters: params,
+          }),
+        }
+      )
+
+      const ct = hfRes.headers.get('content-type') || ''
+      const imageBytes = await hfRes.arrayBuffer()
+      const buf = Buffer.from(imageBytes)
+
+      if (!hfRes.ok) {
+        lastError = buf.toString().slice(0, 500)
+        console.error(`HF ${model}:`, hfRes.status, lastError)
+        continue
       }
-    )
 
-    const contentType = hfRes.headers.get('content-type') || ''
+      // Ответ — изображение (бинарные данные, не JSON)
+      if (ct.includes('image/') || (buf.length > 200 && buf[0] !== 0x7b)) {
+        imageBuf = buf
+        imageContentType = ct.includes('image/') ? ct.split(';')[0].trim() : 'image/png'
+        break
+      }
 
-    if (!hfRes.ok) {
-      const errText = await hfRes.text()
-      console.error('Hugging Face image error:', hfRes.status, errText)
+      // Ответ JSON — модель загружается или ошибка
+      try {
+        const json = JSON.parse(buf.toString()) as { error?: string }
+        if (json?.error) lastError = json.error
+      } catch {
+        /* ignore */
+      }
+    }
+
+    if (!imageBuf) {
+      const msg = lastError?.toLowerCase().includes('loading')
+        ? 'Сервис генерации изображений загружается. Подождите минуту и попробуйте снова.'
+        : 'Не удалось сгенерировать изображение. Проверьте HUGGINGFACE_API_KEY (токен с правом Inference) и попробуйте позже.'
       return NextResponse.json(
-        { error: 'Не удалось сгенерировать изображение. Попробуйте позже.' },
-        { status: 502 }
+        { error: msg },
+        { status: 503 }
       )
     }
 
-    const imageBytes = await hfRes.arrayBuffer()
-    const buf = Buffer.from(imageBytes)
-
-    // Если ответ — JSON (например, "Model is loading"), а не изображение
-    if (contentType.includes('application/json') || buf[0] === 0x7b) {
-      try {
-        const json = JSON.parse(buf.toString()) as { error?: string }
-        if (json?.error) {
-          console.error('Hugging Face:', json.error)
-          return NextResponse.json(
-            { error: 'Сервис генерации изображений занят. Попробуйте через минуту.' },
-            { status: 503 }
-          )
-        }
-      } catch {
-        // не JSON — продолжаем как с изображением
-      }
-    }
-
-    const base64 = buf.toString('base64')
-    const imageContentType = contentType.includes('image/') ? contentType.split(';')[0].trim() : 'image/png'
+    const base64 = imageBuf.toString('base64')
     const dataUrl = `data:${imageContentType};base64,${base64}`
 
     return NextResponse.json({
