@@ -63,14 +63,17 @@ export async function POST(request: NextRequest) {
       'Abstract concept, digital art, vivid colors'
 
     // 2. Генерируем изображение через Hugging Face Inference API
+    // Нужен токен с правом "Inference" (или "Inference Providers"): https://huggingface.co/settings/tokens
     const models: { id: string; params: Record<string, number> }[] = [
-      { id: 'black-forest-labs/FLUX.1-schnell', params: { num_inference_steps: 4 } },
+      { id: 'ByteDance/SDXL-Lightning', params: { num_inference_steps: 4, guidance_scale: 1 } },
       { id: 'stabilityai/stable-diffusion-2-1', params: { num_inference_steps: 20, guidance_scale: 7.5 } },
+      { id: 'black-forest-labs/FLUX.1-schnell', params: { num_inference_steps: 4 } },
     ]
 
     let imageBuf: Buffer | null = null
     let imageContentType = 'image/png'
     let lastError = ''
+    let lastStatus = 0
 
     for (const { id: model, params } of models) {
       const hfRes = await fetch(
@@ -88,6 +91,7 @@ export async function POST(request: NextRequest) {
         }
       )
 
+      lastStatus = hfRes.status
       const ct = hfRes.headers.get('content-type') || ''
       const imageBytes = await hfRes.arrayBuffer()
       const buf = Buffer.from(imageBytes)
@@ -115,9 +119,16 @@ export async function POST(request: NextRequest) {
     }
 
     if (!imageBuf) {
-      const msg = lastError?.toLowerCase().includes('loading')
-        ? 'Сервис генерации изображений загружается. Подождите минуту и попробуйте снова.'
-        : 'Не удалось сгенерировать изображение. Проверьте HUGGINGFACE_API_KEY (токен с правом Inference) и попробуйте позже.'
+      let msg: string
+      if (lastStatus === 401) {
+        msg = 'Неверный или просроченный HUGGINGFACE_API_KEY. Создайте новый токен на https://huggingface.co/settings/tokens с правом «Inference» (или «Inference API» / «Inference Providers»).'
+      } else if (lastStatus === 403) {
+        msg = 'Токен не имеет доступа к генерации изображений. Создайте fine-grained токен с правом inference.serverless.write: https://huggingface.co/settings/tokens/new?tokenType=fineGrained'
+      } else if (lastError?.toLowerCase().includes('loading')) {
+        msg = 'Сервис генерации изображений загружается. Подождите 1–2 минуты и попробуйте снова.'
+      } else {
+        msg = 'Не удалось сгенерировать изображение. Создайте токен на https://huggingface.co/settings/tokens: выберите тип «Fine-grained» и включите право «Inference» (Inference API) или «inference.serverless.write». Затем подставьте его в .env.local как HUGGINGFACE_API_KEY и перезапустите сервер.'
+      }
       return NextResponse.json(
         { error: msg },
         { status: 503 }
